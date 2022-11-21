@@ -29,16 +29,6 @@ class ChemSearch:
     from a product code or CAS number, find the name of the chemical
     """
 
-    def __init__(self, number: str):
-        self.chemical_name = None
-        match = re.match(r'(\d+-\d+-\d+)', number)
-        if match is None:
-            self.type = 'code'
-            self.code_search(number)
-        else:
-            self.type = 'cas'
-            self.cas_search(number)
-
     def code_search(self, code: str):
         """
         search by product code
@@ -46,7 +36,11 @@ class ChemSearch:
         :return: chemical name
         """
         html_parsed = get_html(f'https://www.msds.com/Msds/Search?q={code}')
-        print(html_parsed.find_all('h4')[1].text.strip())
+        h4s = html_parsed.find_all('h4')
+        if len(h4s) <= 1:
+            return None
+        else:
+            return h4s[1].text.strip()
 
     def cas_search(self, cas: str):
         """
@@ -54,14 +48,15 @@ class ChemSearch:
         :param cas: CAS number
         :return: chemical name
         """
-        html_parsed = get_html(f'https://commonchemistry.cas.org/detail?cas_rn={cas}')
-        if "Get detail failed: Detail not found" in html_parsed:
-            html_parsed_alt = get_html(f'https://pubchem.ncbi.nlm.nih.gov/compound/{cas}')
-            if html_parsed_alt.h1 is not None:
-                return html_parsed_alt.h1.text
-        if html_parsed.h1 is not None:
-            return html_parsed.h1.text
-
-
-
-ChemSearch('t2663')
+        match = re.match(r'(\d+-\d+-\d+)', cas)
+        if match is None:
+            return None
+        else:
+            html_parsed = get_html(f'https://commonchemistry.cas.org/detail?cas_rn={cas}')
+            if "Get detail failed: Detail not found" in html_parsed:
+                html_parsed_alt = get_html(f'https://pubchem.ncbi.nlm.nih.gov/compound/{cas}')
+                if html_parsed_alt.h1 is not None:
+                    return html_parsed_alt.h1.text
+            if html_parsed.h1 is not None:
+                return html_parsed.h1.text
+        return None
