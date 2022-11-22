@@ -11,6 +11,14 @@ class RESTapi(BaseModel):
     data: dict = {}
 
 
+class Chemical(BaseModel):
+    cas: str = ""
+    code: str = ""
+    name: str = ""
+    weight: float = 0.0
+    remaining: int = 0
+
+
 @app.get("/lookup/cas/{cas}")
 async def lookup_cas(cas: str):
     chem = ChemSearch()
@@ -21,3 +29,8 @@ async def lookup_cas(cas: str):
 async def lookup_code(code: str):
     chem = ChemSearch()
     return RESTapi(status=200, msg="OK", data={"ChemName": chem.code_search(code)})
+
+
+@app.post("/add/chemical")
+async def add_chemical(chem: Chemical):
+    return RESTapi(status=200, msg="OK", data={"ChemName": chem.name})
